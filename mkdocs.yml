@@ -52,6 +52,7 @@ plugins:
 nav:
   - Home: index.md
   - Getting Started: getting-started.md
+  - Framework Integrations: integrations.md
   - Authentication: authentication.md
   - API Reference: api.md
   - Security: security.md

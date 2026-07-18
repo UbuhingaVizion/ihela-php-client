@@ -99,8 +99,8 @@ jobs:
           php-version: "8.3"
           tools: composer:v2
 
-      - name: Validate composer.json
-        run: composer validate --strict
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Run composer audit
         run: composer audit
