@@ -1,0 +1,3 @@
+# Semgrep ignore patterns
+vendor/
+tests/

@@ -1,147 +1,92 @@
 # iHela PHP Client
 
-This is the repository for a Php client for consuming the iHela Crédit Union API for financial services in Burundi. The API documentation can be found on https://docs.ihela.bi/.
-PHP Client for iHela API
+[![Packagist Version](https://img.shields.io/packagist/v/ihela/api-client)](https://packagist.org/packages/ihela/api-client)
+[![PHP Versions](https://img.shields.io/packagist/php-v/ihela/api-client)](https://packagist.org/packages/ihela/api-client)
+[![License](https://img.shields.io/packagist/l/ihela/api-client)](LICENSE)
+[![CI](https://github.com/UbuhingaVizion/ihela-php-client/actions/workflows/ci.yml/badge.svg)](https://github.com/UbuhingaVizion/ihela-php-client/actions/workflows/ci.yml)
+[![Docs](https://img.shields.io/badge/docs-mkdocs-blue)](https://UbuhingaVizion.github.io/ihela-php-client/)
 
-## Install composer
+PHP SDK for the iHela Credit Union API for financial services in Burundi.
+Framework-agnostic — works with **Laravel**, **Symfony**, or any PHP application.
 
-```sh
-curl -sS https://getcomposer.org/installer | php
-```
+## Installation
 
-## Install dependencies
-
-```sh
+```bash
 composer require ihela/api-client
 ```
 
-For the not-released version, use:
-
-```sh
-composer require ihela/api-client:dev-master
-```
-
-## Import the class
+## Quick Start
 
 ```php
-<?php 
-require_once __DIR__ . '/vendor/autoload.php';
+<?php
 
-use Ihela\Merchant\IhelaMerchant;
+require 'vendor/autoload.php';
 
-$client_id = "4sS7OWlf8pqm04j1ZDtvUrEVSZjlLwtfGUMs2XWZ";
-$client_secret = "HN7osYwSJuEOO4MEth6iNlBS8oHm7LBhC8fejkZkqDJUrvVQodKtO55bMr845kmplSlfK3nxFcEk2ryiXzs1UW1YfVP5Ed6Yw0RR6QmnwsQ7iNJfzTgeehZ2XM9mmhC3";
-$is_prod = false;
-$pin_code = '1234'; // Given by iHela
+use Ihela\Merchant\MerchantClient;
 
-
-// I. get the iHela client
-$ihela = new IhelaMerchant($client_id, $client_secret, $pin_code, null, $is_prod)
-
+$client = new MerchantClient(
+    getenv('IHELA_CLIENT_ID'),
+    getenv('IHELA_CLIENT_SECRET'),
+    getenv('IHELA_PIN_CODE'),
+);
 ```
 
-This initializes the client and return a ready to use object with authentication. User `$prod=true` to access to production if you have received production credentials and have set the production VPN.
-
-## Bank Lookup
-
-You will often have to fetch for bank list.
+## OAuth2 SSO
 
 ```php
-// IV. Banks Lookup
-$banks = $ihela->getBanks();
+use Ihela\Auth\MerchantAuthorizationClient;
 
-/*
-Response sample
+$auth = new MerchantAuthorizationClient(
+    getenv('IHELA_CLIENT_ID'),
+    getenv('IHELA_CLIENT_SECRET'),
+);
 
-{
-    "objects": [...]
-    "count": 4
-} */
+$loginUrl = $auth->getAuthorizationUrl('https://your-app.com/callback/');
+// Redirect user to $loginUrl, handle callback with $auth->authenticate($code, $redirectUri)
 ```
 
-## Customer Lookup
+See the **[Authentication](https://UbuhingaVizion.github.io/ihela-php-client/authentication/)** guide for Laravel and Symfony examples.
 
-You will often have to check the customer information to help the user know if there is no error.
-
-```php
-// Customer Lookup
-$lookup = $ihela->customerLookup($banks->objects[0]->slug, "jonasnih@gmail.com");
-
-/*
-Response sample
-
-{
-    "account_number": "000001-01",
-    "customer_id": "16",
-    "name": "Niheza Jonas"
-} */
-```
-
-## Initialize a Bill
-
-Initialize a bill sending the function below
+## Exception Handling
 
 ```php
-// II. Initialize a bill
-$ihela->initBill(2000, "REF1", "description here", 'pierreclaverkoko@gmail.com');
+use Ihela\Core\Exception\ApiException;
+use Ihela\Core\Exception\AuthenticationException;
+use Ihela\Core\Exception\IhelaException;
+use Ihela\Core\Exception\RateLimitException;
 
-/*
-Response example :
-{
-    "bill": {
-        "code": "BILL-20200101-N7EKDYOU6R",
-        "amount": "<AMOUNT_IN_DECIMAL>",
-        "currency": 108,
-        "merchant": {
-            "title": "Your App Merchant Name",
-        },
-        "description": "DESCRIPTION",
-        "redirect_uri": "YOUR_BILL_CONFIRM_REDIRECT_URI",
-        "currency_info": {
-            "title": "BURUNDIAN FRANC",
-            "iso_code": 108,
-            "abbreviation": "BIF",
-            "iso_alpha_code": "BIF",
-        },
-        "confirmation_uri": "https://testgate.ihela.online/banking/bill/BILL-20200101-N7EKDYOU6R/confirm/",
-        "payment_reference": None,
-        "merchant_reference": "YOUR_APP_REFERENCE",
-    }
+try {
+    $bill = $client->initBill(2000, 'client@example.com', 'Payment', 'ref-001');
+} catch (AuthenticationException $e) {
+    // Authentication failed. Check credentials.
+} catch (ApiException $e) {
+    // API error. $e->statusCode, $e->isRetryable()
+} catch (RateLimitException $e) {
+    // Rate limit exceeded
+} catch (IhelaException $e) {
+    // Base iHela error
 }
-*/
 ```
 
-## Verify a Bill
+## Features
 
-You will often verify bill status to know how to handle them in your application. The function below is used to check the status.
+- **Merchant Services**: Bill init/verify, cash-in, bank lists, customer lookup
+- **Banking Services**: Deposits, withdrawals, account lookup/balance, statements, transaction fees
+- **Agent Services**: Operations, withdrawal validation
+- **OAuth2**: Client credentials and authorization code flows
+- **Framework-Agnostic**: PSR-18 HTTP client — works with Guzzle, Symfony HttpClient, or any PSR-18 implementation
+- **Security**: HMAC-SHA256 request signing, input validation, sensitive data masking, HTTPS enforcement
 
-```php
-// III. Verify a bill
-$ihela->verifyBill("REF1", "BILL20200811439");
+## Security
 
-/*
-Response sample
+- Never hardcode credentials; use environment variables or a secrets vault.
+- Report vulnerabilities confidentially to **info@ubuviz.com** — see [SECURITY.md](SECURITY.md).
+- Rotate exposed credentials immediately.
 
-{
-  "bank_reference": <final_payment_reference>,
-  "reference": THE_BILL_UNIQUE_CODE,
-  "code": YOUR_APP_REFERENCE,
-  "status": <Paid|Pending>,
-  "message": "Bill waiting for payment"
-}
-*/
-```
+## Documentation
 
-Possible statuses are **Pending**, **Paid**, **Expired**, **Error**, **Cancelled** .
+Full documentation at [UbuhingaVizion.github.io/ihela-php-client](https://UbuhingaVizion.github.io/ihela-php-client/).
 
-## Customer Cashin
+## License
 
-Sometimes, you will have to refund money to a customer.
-```php
-// V. Cashin
-
-$test->cashinClient($banks->banks[0]->slug, $lookup->account_number, $lookup->name, 3000, "REF2", "cashin description");
-```
-# Support
-
-Emails : support@ihela.online , info@ihela.online
+MIT — see [LICENSE](LICENSE).
