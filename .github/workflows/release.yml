@@ -4,7 +4,6 @@ on:
   push:
     tags:
       - "v*"
-      - "*"
 
 jobs:
   release:
@@ -14,6 +13,16 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag is on master
+        run: |
+          git fetch origin master
+          git merge-base --is-ancestor ${{ github.ref }} origin/master || {
+            echo "::error::Tag must be on the master branch to publish a release"
+            exit 1
+          }
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
