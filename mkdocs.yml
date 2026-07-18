@@ -1,0 +1,58 @@
+site_name: iHela PHP Client
+site_description: PHP SDK for the iHela Credit Union API for financial services in Burundi
+site_author: UbuhingaVizion
+site_url: https://UbuhingaVizion.github.io/ihela-php-client/
+repo_url: https://github.com/UbuhingaVizion/ihela-php-client
+repo_name: UbuhingaVizion/ihela-php-client
+edit_uri: edit/develop/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Framework Integrations: integrations.md
+  - Authentication: authentication.md
+  - API Reference: api.md
+  - Security: security.md
